@@ -1,0 +1,27 @@
+title : stage ingenieur / propose a name to the project
+auteur : Youssef Neji
+encadrant BIAT : Mr.Nader Trigui
+classe : 2 Année MIndS
+departement: genie industriel
+
+introduction general
+
+chapter 1 : Cadre théorique et réglementaire
+    -intro
+    -Représentation de l’organisme d’accueil(historique et fondation,missions et valeurs ,chiffre clés, presentation du deparetement du risque )
+    -definitions des mots cle utilise (on nomme les subsection par mots cle comme ARIMA,GARCH,cours de change ...)
+chapter 2 : données et preparation du dataset
+    -presentation des données (quelque visualisation des données raw avec des petites interpretation ou commentaire avec d'autre informations sur les sources des données comme BCT, INS, FRED avec une petites representations des sources)
+    -nettoyage et traitement des données (qu'est ce qu'on fait pour chacune des données)
+    -construction du dataset final(on peut parler aussi de comment on va travailler statique et implementation apres du dynamique )(caracteristique general,statique descriptives)
+    -visualisationdes variables cibles (si necessaire),(correlations , scatters...)(on peut la faire dans le subsection du dataset final )
+chapter 3 : analyse et prvisions (propose un titre convenable)
+    -configuration,analyse preliminaire des données , fondements theorique avec interpretation pratique (volatilite, sharpe)  (on peut la faire dans plusieur subsections)
+    -prevision(mise en situation, definition utiles,nettoyage des données si necessaire,test de stationarite avec tout les test faite)
+    -modeles utilise(naive,ARIMA,GARCH,LSTM) a determiner plus tard
+    validation croise et comparaison des modeles(n'oublie pa la definition et calcul des metyrics de validation)
+
+
+
+
+

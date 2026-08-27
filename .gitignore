@@ -1,0 +1,27 @@
+# Environnement Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+env/
+
+# Données brutes (trop lourdes pour git)
+data/raw/
+data/processed/*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PyTorch modèles sauvegardés
+*.pt
+*.pth

@@ -1,0 +1,118 @@
+﻿Structure du dossier pour le volume DATA
+Le numéro de série du volume est 000001E4 7CCA:460A
+D:\INGENIEUR\STAGE INGENIEUR(BIAT\BIAT_STAGE\BIAT_STAGE\SRC
+│   check_usd_j30_outliers.py
+│   consolidate.py
+│   data.py
+│   diagnose_arimax.py
+│   generate_figures.py
+│   inference.py
+│   predict_august.py
+│   train_final_models.py
+│   update_data.py
+│   __init__.py
+│   
+├───s2_arima_garch
+│   │   arima.py
+│   │   arimax.py
+│   │   arimax_variable_selection.py
+│   │   config.py
+│   │   diebold_mariano.py
+│   │   garch.py
+│   │   load.py
+│   │   metrics.py
+│   │   naive.py
+│   │   plots.py
+│   │   run_arimax.py
+│   │   run_s2.py
+│   │   stationarity.py
+│   │   __init__.py
+│   │   
+│   └───__pycache__
+│           arima.cpython-312.pyc
+│           arimax.cpython-312.pyc
+│           arimax_variable_selection.cpython-312.pyc
+│           config.cpython-312.pyc
+│           diebold_mariano.cpython-312.pyc
+│           garch.cpython-312.pyc
+│           load.cpython-312.pyc
+│           metrics.cpython-312.pyc
+│           naive.cpython-312.pyc
+│           plots.cpython-312.pyc
+│           run_arimax.cpython-312.pyc
+│           run_s2.cpython-312.pyc
+│           stationarity.cpython-312.pyc
+│           __init__.cpython-312.pyc
+│           
+├───s3_lstm_xgboost
+│   │   config.py
+│   │   exog_features.py
+│   │   feature_selection.py
+│   │   load.py
+│   │   lstm.py
+│   │   metrics.py
+│   │   mlp.py
+│   │   run_s3.py
+│   │   __init__.py
+│   │   
+│   └───__pycache__
+│           augmentation.cpython-312.pyc
+│           config.cpython-312.pyc
+│           exog_features.cpython-312.pyc
+│           feature_selection.cpython-312.pyc
+│           load.cpython-312.pyc
+│           lstm.cpython-312.pyc
+│           metrics.cpython-312.pyc
+│           mlp.cpython-312.pyc
+│           run_s3.cpython-312.pyc
+│           xgboost_model.cpython-312.pyc
+│           __init__.cpython-312.pyc
+│           
+├───s4_risk
+│   │   bct_diagnostics.py
+│   │   config.py
+│   │   run_s4.py
+│   │   stress.py
+│   │   var.py
+│   │   __init__.py
+│   │   
+│   └───__pycache__
+│           bct_diagnostics.cpython-312.pyc
+│           config.cpython-312.pyc
+│           run_s4.cpython-312.pyc
+│           stress.cpython-312.pyc
+│           var.cpython-312.pyc
+│           __init__.cpython-312.pyc
+│           
+├───s5_hedging
+│   │   compare.py
+│   │   config.py
+│   │   forward.py
+│   │   markowitz.py
+│   │   options.py
+│   │   __init__.py
+│   │   
+│   └───__pycache__
+│           compare.cpython-312.pyc
+│           config.cpython-312.pyc
+│           forward.cpython-312.pyc
+│           markowitz.cpython-312.pyc
+│           options.cpython-312.pyc
+│           __init__.cpython-312.pyc
+│           
+└───__pycache__
+        check_usd_j30_outliers.cpython-312.pyc
+        consolidate.cpython-312.pyc
+        data.cpython-312.pyc
+        diagnose_markov_params.cpython-312.pyc
+        generate_figures.cpython-312.pyc
+        inference.cpython-312.pyc
+        predict_august.cpython-312.pyc
+        regime_detection.cpython-312.pyc
+        regime_pretest.cpython-312.pyc
+        regime_threshold.cpython-312.pyc
+        train_final_models.cpython-312.pyc
+        update_data.cpython-312.pyc
+        __init__.cpython-312.pyc
+        
+PS D:\Ingenieur\stage ingenieur(BIAT\biat_stage\biat_stage> 

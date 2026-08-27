@@ -1,0 +1,94 @@
+1. Pourquoi le réindexage ?
+Les cours BCT sont publiés uniquement les jours ouvrés tunisiens. Mais les jours fériés tunisiens (Aïd, Fête de la République...) ne sont pas fériés dans les autres pays. Résultat : quand tu feras le merge avec le Brent ou les taux Fed (qui ont des valeurs ces jours-là), tu auras des trous dans les cours BCT.
+Le réindexage sur freq="B" (Business Days internationaux) remplit ces trous → l'interpolation les comble avec des valeurs cohérentes. C'est standard dans la finance quantitative.
+
+2. Pourquoi les log-rendements ?
+Trois raisons concrètes pour ton projet :
+Pour GARCH (S2) : GARCH modélise la volatilité des rendements, pas des niveaux. Tu ne peux pas faire GARCH(tnd_eur) directement — tu fais GARCH(LogRet_TND_EUR).
+Pour la stationnarité : Les cours de change ont une tendance (non-stationnaires). Les log-rendements sont quasi-stationnaires → nécessaire pour ARIMA.
+Pour LSTM et XGBoost (S3) : Les rendements normalisent les données entre -1 et +1 approximativement → convergence plus rapide.
+
+
+3. Faut-il garder les données depuis 2004 ?
+Oui et non — c'est une décision de modélisation.
+Pour l'entraînement des modèles (ARIMA, GARCH, LSTM, XGBoost), plus de données = mieux en général. 2004-2022 pour l'entraînement, 2023-2025 pour le test.
+Mais il y a un risque : le régime de change a changé. Le TND était quasi-fixe avant 2012, puis la dépréciation a commencé vraiment après 2016. Un modèle entraîné sur 2004-2022 va "voir" trois régimes très différents. Pour ton rapport, tu peux mentionner ce point et potentiellement entraîner aussi sur 2015-2022 pour comparer.
+Conseil pratique : garde 2004 pour l'instant, mais définis une variable TRAIN_START dans models.py que tu peux changer facilement.
+
+
+📋 État complet du projet — À jour
+🎓 Contexte
+
+Stagiaire : Youssef Neji | Filière MINDS | ENIT | Stage BIAT 2025
+Binôme : présent mais participation limitée — tu travailles essentiellement seul
+Durée : 6 semaines | Encadrant : réunion de validation chaque semaine
+Environnement : VSCode local | PyTorch (pas Keras)
+
+
+✅ S1 — TERMINÉE
+Dataset final opérationnel :
+
+5739 lignes × 12 colonnes | 2004-01-02 → 2025-12-31 | jours ouvrés BCT
+Fichier : data/processed/dataset_final.csv
+
+ColonneSourceQualitéTND_EUR, TND_USDBCT✅ 0 NaNLogRet_TND_EUR, LogRet_TND_USDCalculé✅ 1 NaN normalBrent_USDFRED✅ 0 NaNTauxFed_USDFRED✅ 0 NaNTauxBCE_EURFRED✅ 0 NaNIPC_USAFRED✅ 0 NaNVIXFRED✅ 0 NaNEURUSDFRED✅ 0 NaNTauxMMBCTBCT✅ 0 NaNIPC_TunisieINS🔶 2869 NaN (2004–2014, volontaire)
+Structure VSCode :
+biat_stage/
+├── data/raw/          ← tous les fichiers sources
+├── data/processed/    ← dataset_final.csv + fichiers nettoyés
+├── src/
+│   ├── data.py        ✅ TERMINÉ
+│   ├── models.py      ← S2-S3 à faire
+│   ├── risk.py        ← S4 à faire
+│   ├── coverage.py    ← S5 à faire
+│   └── portfolio.py   ← S5 bonus
+├── dashboard/app.py
+└── report/
+
+🔲 S2 — À FAIRE (prochaine étape)
+Objectif : src/models.py — Benchmark naïf + ARIMA + GARCH
+Décisions de modélisation arrêtées :
+
+TRAIN_START : paramétrable — tester 2004–2022 ET 2015–2022 (deux fenêtres)
+TEST : 2023–2025 (backtesting)
+Devises : TND/EUR en premier, puis TND/USD
+Régime de change : quasi-fixe avant 2012, transition 2012-2015, dépréciation depuis 2016 → à mentionner dans le rapport
+
+Ordre des modèles en S2 :
+
+Benchmark naïf : prédiction[t] = cours[t-1]
+Test de stationnarité ADF/KPSS sur LogRet
+ARIMA sur LogRet_TND_EUR + LogRet_TND_USD
+GARCH(1,1) → export sigma_t vers data/processed/sigma_garch.csv
+Métriques : RMSE, MAE, MAPE pour chaque modèle
+
+Point important noté pour GARCH :
+
+Le sigma_t exporté par GARCH est le lien central entre Axe 1 et Axe 2 — il alimente la VaR paramétrique et le pricing Garman-Kohlhagen
+
+
+🔲 S3 — À FAIRE
+Objectif : LSTM (PyTorch) + XGBoost enrichi variables macro + corrélation TND/EUR ↔ TND/USD
+Note importante mémorisée :
+
+Pour XGBoost : IPC_Tunisie est NaN sur 2004-2014 → utiliser uniquement 2015-2022 pour l'entraînement XGBoost, ou exclure cette variable pour la fenêtre 2004-2022
+
+⚠️ Rappel S3 : Collecter les réserves de change BCT avant de coder XGBoost
+
+🔲 S4 — À FAIRE
+VaR historique + paramétrique (via sigma GARCH) + Monte Carlo + CVaR + Stress testing (-10%, -20%, -30%) sur les 5 profils simulés
+🔲 S5 — À FAIRE
+Forward + Garman-Kohlhagen + comparaison Forward vs Option + Markowitz EUR+USD + Dashboard Streamlit multipage
+🔲 S6 — À FAIRE
+Rapport final LaTeX (template ENIT) + soutenance
+
+📊 Les 5 profils simulés
+ProfilTypeDeviseMontantMaturitéInstrumentALPHA SARLEntrepriseTND/EUR1M EUR90jForwardBETA ExportEntrepriseTND/USD500K USD45-120jOption PUTM. GAMMAParticulierTND/EUR50K EUR30jForwardDesk Change BIATPosition propreTND/EUR+USD8MQuotidienForward+OptionDette BIATBilanTND/USD10M USDTrimestrielForward série
+
+📚 Ancrage académique
+
+Engle (1982) : ARCH → GARCH
+Diebold & Mariano (1995) : test comparaison modèles (backtesting)
+Markowitz (1952) : optimisation portefeuille
+Garman & Kohlhagen (1983) : pricing options de change
+Bâle III : VaR réglementaire

@@ -1,0 +1,52 @@
+
+Collecte et préparation des données
+La construction du dataset repose sur sept sources de données publiques couvrant la période du 2 janvier 2004 au 31 décembre 2025, soit 5739 observations journalières (jours ouvrés).
+Cours de change
+Les cours spot TND/EUR et TND/USD ont été extraits depuis le site officiel de la Banque Centrale de Tunisie (BCT). Le fichier source, au format XLS HTML, a nécessité un traitement spécifique : extraction des dates par expression régulière, conversion des valeurs brutes (exprimées en millièmes) et reconstruction d'un index temporel cohérent. La série obtenue couvre 5558 observations journalières brutes, soit une moyenne de 252 jours ouvrés par an conformément au calendrier bancaire tunisien.
+Variables macroéconomiques
+Six variables macroéconomiques ont été collectées afin d'enrichir les modèles de prédiction, notamment XGBoost :
+
+Prix du pétrole Brent (DCOILBRENTEU) : indicateur de pression inflationniste importée, journalier
+Taux directeur de la Fed (DFF) : proxy du coût du dollar américain, journalier
+Taux directeur de la BCE (ECBDFR) : proxy du coût de l'euro, journalier
+Indice des prix à la consommation américain — IPC USA (CPIAUCSL) : indicateur d'inflation USD, mensuel
+Indice VIX (VIXCLS) : mesure de la volatilité implicite des marchés financiers mondiaux, journalier
+Taux de change EUR/USD (DEXUSEU) : variable de contexte monétaire international, journalier
+
+Ces six séries ont été téléchargées depuis la base de données FRED (Federal Reserve Bank of St. Louis) au format CSV standard.
+Deux variables macroéconomiques tunisiennes ont également été intégrées :
+
+Taux du marché monétaire BCT : collecté annuellement sur la période 2004–2024 depuis les publications statistiques de la BCT, puis propagé en fréquence journalière par forward fill
+Indice des prix à la consommation tunisien (base 100 = 2015) : collecté annuellement sur la période 2015–2025 depuis l'Institut National de la Statistique (INS), puis converti en fréquence mensuelle par interpolation linéaire. La période 2004–2014 ne dispose pas de données INS harmonisées sur cette base et demeure volontairement manquante dans le dataset ; XGBoost gère nativement ces valeurs absentes.
+
+Pipeline de nettoyage
+Le pipeline de nettoyage appliqué aux cours de change comprend quatre étapes successives :
+Premièrement, un réindexage sur les jours ouvrés internationaux (Business Days) a été effectué afin de combler les jours fériés tunisiens non publiés par la BCT (Aïd al-Fitr, Aïd al-Adha, fête de la République, etc.). Cette opération a généré 224 observations manquantes par série.
+Deuxièmement, ces valeurs manquantes ont été comblées par interpolation linéaire, méthode appropriée pour des séries de cours de change à variation progressive. Un forward fill et un backward fill ont été appliqués aux extrémités de série.
+Troisièmement, une détection des valeurs aberrantes par z-score (seuil |z| > 4) a été appliquée afin d'identifier d'éventuelles erreurs de saisie dans les données BCT. Aucun outlier n'a été détecté sur la période 2004–2025.
+Quatrièmement, les log-rendements journaliers ont été calculés selon la formule :
+rt=ln⁡(StSt−1)r_t = \ln\left(\frac{S_t}{S_{t-1}}\right)rt​=ln(St−1​St​​)
+où StS_t
+St​ désigne le cours spot à la date tt
+t. Les log-rendements sont utilisés comme variable cible pour GARCH (modélisation de la volatilité conditionnelle) et comme feature pour LSTM et XGBoost (stationnarisation implicite).
+Dataset final
+Le dataset consolidé présente les caractéristiques suivantes :
+
+Dimensions : 5739 lignes × 12 colonnes
+Période : 2 janvier 2004 – 31 décembre 2025
+Colonnes : TND_EUR, LogRet_TND_EUR, TND_USD, LogRet_TND_USD, Brent_USD, TauxFed_USD, TauxBCE_EUR, IPC_USA, VIX, EURUSD, TauxMMBCT, IPC_Tunisie
+Qualité : 10 colonnes sans aucune valeur manquante, 2 colonnes avec 1 NaN (première ligne des log-rendements, attendu), IPC_Tunisie avec 2869 NaN sur 2004–2014
+
+Les statistiques descriptives des cours spot sont présentées dans le tableau suivant :
+StatistiqueTND/USDTND/EURObservations57395739Moyenne2.06822.4590Écart-type0.72710.6774Minimum1.14741.5139Maximum3.33283.4710
+Note sur le régime de change du TND
+La série historique 2004–2025 couvre trois régimes de change distincts du dinar tunisien : une période de quasi-fixité relative entre 2004 et 2011, une phase de transition entre 2012 et 2015, et une phase de dépréciation progressive et accélérée depuis 2016. Ce changement de régime sera pris en compte dans le choix de la fenêtre d'entraînement des modèles (comparaison 2004–2022 vs 2015–2022).
+
+"Le prix du pétrole Brent est retenu comme variable explicative en raison du rôle central des importations énergétiques dans le déficit courant tunisien et de leur impact direct sur la demande de devises étrangères, créant un lien structurel entre les cours pétroliers internationaux et la valeur du dinar tunisien."
+Le taux directeur de la Réserve fédérale américaine est retenu comme variable explicative en raison de son rôle déterminant dans l'attractivité relative du dollar sur les marchés internationaux ; un différentiel croissant entre les taux FED et BCT tend à orienter les flux de capitaux vers les actifs libellés en dollars, exerçant une pression structurelle à la dépréciation sur le dinar tunisien."
+"Le taux directeur de la Banque Centrale Européenne est retenu comme variable explicative en raison du poids prépondérant de la zone euro dans les échanges commerciaux tunisiens ; les écarts de politique monétaire entre la BCE et la BCT, ainsi que leurs répercussions sur le taux de change EUR/USD, exercent une influence directe sur la trajectoire du dinar tunisien face à l'euro."
+L'indice des prix à la consommation américain (base 1982-1984 = 100) est retenu comme variable explicative afin de capturer, via la théorie de la parité des pouvoirs d'achat, le différentiel d'inflation entre les États-Unis et la Tunisie, ce différentiel constituant un déterminant structurel de la trajectoire de long terme du taux de change TND/USD."
+"L'indice VIX, souvent qualifié d''indice de la peur', mesure la volatilité implicite anticipée par les investisseurs sur le marché boursier américain à partir des prix d'options. Il est retenu comme variable explicative car il constitue un indicateur avancé de l'aversion au risque mondiale : ses pics coïncident avec des phases de fuite des capitaux hors des marchés émergents et de demande accrue de dollars, exerçant une pression indirecte mais significative sur les devises comme le dinar tunisien."
+"Le taux de change EUR/USD est retenu comme variable explicative car il constitue le pivot du mécanisme de change croisé (cross rate) reliant les trois devises étudiées : la Banque Centrale de Tunisie gérant le dinar par rapport à un panier pondéré dollar-euro, une part significative des variations conjointes du TND/USD et du TND/EUR s'explique mécaniquement par les fluctuations de l'EUR/USD sur les marchés internationaux, indépendamment de tout facteur spécifiquement tunisien."
+"Le taux directeur de la Banque Centrale de Tunisie est retenu comme variable explicative car il constitue l'instrument direct par lequel l'autorité monétaire tunisienne répond aux pressions externes sur le dinar ; le différentiel entre ce taux et les taux directeurs de la FED et de la BCE reflète l'attractivité relative des placements en dinars et influence directement les flux de capitaux et la trajectoire du taux de change. Il convient toutefois de noter le caractère potentiellement endogène de cette variable, la BCT ajustant elle-même sa politique en réaction aux mouvements du marché des changes."
+"L'indice des prix à la consommation tunisien, calculé par l'INS en base 100 = 2015, est retenu comme variable explicative afin de capturer le différentiel d'inflation entre la Tunisie et ses principaux partenaires commerciaux. Conformément à la théorie de la parité des pouvoirs d'achat, l'inflation structurellement plus élevée en Tunisie constitue l'un des déterminants fondamentaux de la tendance dépréciative de long terme du dinar tunisien observée sur la période d'étude."
