@@ -27,7 +27,7 @@ def fit_garch(log_returns: pd.Series, currency: str,
 
     FIX (Vague 4) : dist="t" par défaut au lieu de "normal" —
     cohérent avec la kurtosis excédentaire élevée du TND déjà
-    établie (Chapitre 2, ~8.2) et avec les innovations Student-t
+    établie (Chapitre 2 : 3,83 pour USD et 5,96 pour EUR) et avec les innovations Student-t
     déjà utilisées pour la VaR Monte Carlo (S4). Les innovations
     gaussiennes sous-estiment structurellement le risque de queue.
 

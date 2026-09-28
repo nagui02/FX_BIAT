@@ -61,13 +61,33 @@ def breakeven_analysis(row: dict) -> dict:
 
 def load_forecast(currency: str, horizon: int) -> float | None:
     """
-    Charge la prévision du meilleur modèle pour cet horizon,
-    déterminé DYNAMIQUEMENT depuis metrics_all.csv (RMSE minimal)
-    plutôt qu'un dictionnaire codé en dur qui pointait vers
-    ARIMAX — un modèle explicitement écarté de la production
-    après la validation croisée (Vague 2). Cette version reste
-    automatiquement cohérente si le classement des modèles
-    change à l'avenir, sans jamais avoir à toucher ce fichier.
+    Prévision du meilleur modèle pour cet horizon (RMSE minimal dans
+    metrics_all.csv), faite À LA DATE DE PRICING.
+
+    Le meilleur modèle est toujours déterminé DYNAMIQUEMENT depuis
+    metrics_all.csv plutôt que codé en dur (l'ancien dictionnaire
+    pointait vers ARIMAX, écarté de la production en Vague 2).
+
+    FIX (finalisation du rapport) : l'ancienne version renvoyait la
+    DERNIÈRE valeur de la série de prévisions de la période de test
+    (s.iloc[-1]), c'est-à-dire la prévision pour la dernière date de
+    test (31/07/2026), faite `horizon` jours ouvrés plus tôt. Pour le
+    modèle naïf (pred[t] = actual[t - horizon], cf. naive.py), cette
+    valeur est un cours PASSÉ (fin juillet à J+7, mi-juin à J+30), et
+    non une prévision faite à partir du spot utilisé pour le pricing
+    (load_latest_rates). Les recommandations « Option » obtenues à J+7
+    étaient un artefact de ce décalage.
+
+    Correction :
+      - Naïf (marche aléatoire, S_{t+h} = S_t) : la prévision faite à
+        la date de pricing est le spot du jour, quel que soit
+        l'horizon.
+      - Autre modèle : predictions_*.csv ne contient que des
+        prévisions de la période de test ; aucune prévision faite à
+        la date de pricing n'y est disponible (il faudrait ré-estimer
+        le modèle, cf. predict_august.py). On renvoie None plutôt
+        qu'une valeur périmée : la recommandation affichée est alors
+        "N/A" et seul le critère de coût s'applique.
     """
     metrics_path = f"{PROCESSED_DIR}/metrics_all.csv"
     try:
@@ -82,17 +102,15 @@ def load_forecast(currency: str, horizon: int) -> float | None:
     except FileNotFoundError:
         return None
 
-    pred_col_prefix = "Naif" if best == "Naïf" else best
-    path = f"{PROCESSED_DIR}/predictions_{currency.lower()}.csv"
-    try:
-        df = pd.read_csv(path, index_col=0, parse_dates=True)
-        col = f"{pred_col_prefix}_J{horizon}"
-        if col not in df.columns:
-            return None
-        s = df[col].dropna()
-        return float(s.iloc[-1]) if len(s) > 0 else None
-    except FileNotFoundError:
-        return None
+    if best == "Naïf":
+        rates = load_latest_rates()
+        return float(rates[f"spot_{currency.lower()}"])
+
+    print(f"   ⚠️  Meilleur modèle TND/{currency} J+{horizon} = {best} : "
+          f"aucune prévision faite à la date de pricing disponible "
+          f"(predictions_{currency.lower()}.csv ne couvre que la période "
+          f"de test) — recommandation N/A, critère de coût seul.")
+    return None
 
 
 def recommend_instrument(row: dict) -> dict:
